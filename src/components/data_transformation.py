@@ -15,6 +15,8 @@ from src.utils import save_object
 @dataclass
 class DataTransformationConfig:
     preprocessor_obj_file_path = os.path.join('artifacts', "preprocessor.pkl")
+    transformed_train_file_path = os.path.join('artifacts', "train_arr.npz")  # File path for transformed train data
+    transformed_test_file_path = os.path.join('artifacts', "test_arr.npz")  # File path for transformed test data
 
 class DataTransformation:
     def __init__(self):
@@ -54,9 +56,6 @@ class DataTransformation:
             train_df = pd.read_csv(train_path)
             test_df = pd.read_csv(test_path)
 
-            print("Train DataFrame columns:", train_df.columns)
-            print("Test DataFrame columns:", test_df.columns)
-
             logging.info("Read train and test data completed")
             logging.info("Obtaining preprocessing object")
 
@@ -77,8 +76,13 @@ class DataTransformation:
             train_arr = np.c_[input_feature_train_arr, np.array(target_feature_train_df)]
             test_arr = np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
 
-            logging.info("Saved preprocessing object.")
+            # Save the transformed data arrays as .npz files
+            np.savez_compressed(self.data_transformation_config.transformed_train_file_path, train_arr)
+            np.savez_compressed(self.data_transformation_config.transformed_test_file_path, test_arr)
 
+            logging.info("Transformed data saved as .npz files.")
+
+            # Save the preprocessing object
             save_object(
                 file_path=self.data_transformation_config.preprocessor_obj_file_path,
                 obj=preprocessing_obj
@@ -95,6 +99,7 @@ if __name__ == "__main__":
         train_path = 'E:/ML_Projects/premium_prediction/artifacts/train.csv'
         test_path = 'E:/ML_Projects/premium_prediction/artifacts/test.csv'
         train_arr, test_arr, preprocessor_path = data_transformation.initiate_data_transformation(train_path, test_path)
-        print("Data Transformation Completed Successfully.")
+        logging.info("Data Transformation Completed Successfully.")
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logging.error(f"Error occurred: {e}")
+
